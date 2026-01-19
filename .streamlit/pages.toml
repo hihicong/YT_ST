@@ -1,0 +1,21 @@
+
+[[guide]]
+path = "pages/1_guide.py"
+name = "使用説明"
+icon = "📕"
+
+[["頻道流量"]]
+path = "pages/2_channel_ranking.py"
+name = "流量排名"
+icon = "📃"
+
+[["頻道流量"]]
+path = "pages/3_channel_daily_views.py"
+name = "每日流量"
+icon = "📃"
+
+[["頻道流量"]]
+path = "pages/4_video_views.py"
+name = "影片流量"
+icon = "📃"
+
