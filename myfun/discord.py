@@ -4,11 +4,28 @@ from myfun.config_read import ConfigRead
 
 class Discord: 
 
-    def __init__(self, config):
-        self.config = config
-        self.url = config.config_read("discord_webhook", "url")
+    # def __init__(self, config):
+    #     self.config = config
+    #     self.url = config.config_read("discord_webhook", "url")
+
+    def __init__(self, url=None):
+        # 不要在 import 時硬讀
+        self.url = url
+
+    def _get_url(self):
+        if self.url:
+            return self.url
+        try:
+            return config.config_read("discord_webhook", "url")
+        except Exception:
+            return None
 
     def discord_notify(self, msg_title, message_body, image_paths = None):
+
+        url = self._get_url()
+        if not url:
+            print("Discord webhook URL not found.")
+            return
 
         # 默認沒有image path
         if image_paths is None:
@@ -35,9 +52,9 @@ class Discord:
 
         # 發送請求到 Discord Webhook
         if files:  # 只有在有圖片的情況下才加入 `files`
-            response = requests.post(self.url, data=data, files=files)
+            response = requests.post(url, data=data, files=files)
         else:
-            response = requests.post(self.url, data=data)
+            response = requests.post(url, data=data)
 
         if response.status_code == 204:
             print("訊息發送成功")
