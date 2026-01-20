@@ -1,6 +1,10 @@
 #%%
+from __future__ import annotations
 import requests, os
 from myfun.config_read import ConfigRead
+from typing import Optional
+from myfun.settings import get_discord_webhook_url
+
 
 class Discord: 
 
@@ -8,21 +12,13 @@ class Discord:
     #     self.config = config
     #     self.url = config.config_read("discord_webhook", "url")
 
-    def __init__(self, url=None):
-        # 不要在 import 時硬讀
-        self.url = url
-
-    def _get_url(self):
-        if self.url:
-            return self.url
-        try:
-            return config.config_read("discord_webhook", "url")
-        except Exception:
-            return None
+    def __init__(self, config=None, webhook_url: Optional[str] = None):
+        self.config = config
+        self.webhook_url = webhook_url  # 可外部傳入（例如測試）
 
     def discord_notify(self, msg_title, message_body, image_paths = None):
 
-        url = self._get_url()
+        url = self.webhook_url or get_discord_webhook_url(self.config)
         if not url:
             print("Discord webhook URL not found.")
             return

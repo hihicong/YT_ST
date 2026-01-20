@@ -1,4 +1,5 @@
 #%%
+from __future__ import annotations
 from sqlalchemy import create_engine
 import pymysql
 import os, sys, time
@@ -7,13 +8,37 @@ import __main__
 from myfun.config_read import ConfigRead
 from myfun.discord import Discord
 import pandas as pd
+import streamlit as st
+from myfun.settings import get_sql_db_url
+from typing import Optional
+
 
 class SQL_connection:
 
+    # def __init__(self, config, Discord):
+    #     self.config = config
+    #     self.url = config.config_read("SQL_DB", "DB_URL")
+    #     self.discord = Discord
+
     def __init__(self, config, Discord):
         self.config = config
-        self.url = config.config_read("SQL_DB", "DB_URL")
         self.discord = Discord
+        self.db_url = None   # 先不讀
+
+    def _get_db_url(self):
+        try:
+            import streamlit as st
+            db_url = st.secrets.get("SQL_DB", {}).get("DB_URL")
+            if db_url:
+                return db_url
+        except Exception:
+            pass  # 本機沒有 secrets，正常
+
+        # fallback：本機 config
+        try:
+            return self.config.config_read("SQL_DB", "DB_URL")
+        except Exception:
+            return None
 
 
     def _get_main_script_name(self):
@@ -39,8 +64,12 @@ class SQL_connection:
         function_name = self._get_main_script_name()
         # print(function_name)
 
+        db_url = self._get_db_url()
+        if not db_url:
+            raise RuntimeError("DB_URL not configured")
+        
         try:
-            full_url = self.url+db
+            full_url = db_url+db
             # 創建資料庫連接
             engine = create_engine(full_url)
             
@@ -97,9 +126,13 @@ class SQL_connection:
         max_retries = 3       # 連接最大重試
         empty_retry_limit = 3 # 查詢結果空的最大重試
 
+        db_url = self._get_db_url()
+        if not db_url:
+            raise RuntimeError("DB_URL not configured")
+
         for attempt in range(max_retries):
             try:
-                full_url = self.url + db
+                full_url = db_url + db
                 engine = create_engine(full_url)
                 conn = engine.raw_connection()
                 cursor = conn.cursor()
